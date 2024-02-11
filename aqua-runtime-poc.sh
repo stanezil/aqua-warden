@@ -188,24 +188,31 @@ main() {
                 ;;
             7)
                 # Terminate the program
-                read -p "Do you want to delete the Aqua test container before termination? (y/n)? Enter c to cancel termination: " delete_container
-                case $delete_container in
+                read -p "Are you sure you want to terminate the program? (y/n): " terminate_choice
+                case $terminate_choice in
                     [Yy]*)
-                        delete_test_container
-                        kubectl delete pod centos --force 
+                        read -p "Do you want to delete the Aqua test container before termination? (y/n): " delete_container
+                        case $delete_container in
+                            [Yy]*)
+                                delete_test_container
+                                kubectl delete pod centos --force 
+                                ;;
+                            [Nn]*)
+                                echo "Exiting program without deleting the Aqua test container."
+                                ;;
+                            *)
+                                echo "Invalid input. Exiting program without deleting the Aqua test container."
+                                ;;
+                        esac
+                        exit
                         ;;
                     [Nn]*)
-                        echo "Exiting program without deleting the Aqua test container."
-                        ;;
-                    [Cc]*)
-                        echo "Cancelling..."
-                        continue
+                        echo "Cancelled termination. Returning to the main menu."
                         ;;
                     *)
-                        echo "Invalid input. Exiting program without deleting the Aqua test container."
+                        echo "Invalid input. Returning to the main menu."
                         ;;
                 esac
-                exit
                 ;;
             *)
                 echo "Invalid choice. Please choose a valid option."
@@ -215,7 +222,7 @@ main() {
 
         echo
         # Add a short delay before showing the options menu again
-        sleep 2
+        sleep 3
     done
 }
 
