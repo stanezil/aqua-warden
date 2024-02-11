@@ -17,6 +17,11 @@ print_logo() {
     echo "                                                   *%%                                    "
     echo "                                                   *%%                                    "
     echo "                                                                                          "
+    echo "                                                                                          "
+    echo "                                                                                          "
+    echo "                                                                                          "
+    echo "                                                                                          "
+    echo "                                                                                          "
 }
 
 check_container_existence() {
@@ -56,6 +61,7 @@ delete_test_container() {
 main() {
     print_logo
     echo "Welcome to the Aqua Runtime Security POC Test Program!"
+    echo "Developed by: Stan Hoe, Solution Architect, APJ"
     echo
 
     # Check if Aqua test container exists
@@ -118,7 +124,9 @@ main() {
                     container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
                     echo "Copying '/bin/ls' to '/tmp/ls_copy' in the container..."
                     kubectl exec -it $pod_name --container $container_name -- cp /bin/ls /tmp/ls_copy
-                    echo "Executing '/tmp/ls_copy' command in the container..."
+                    echo "Executing 'cd /tmp' in the container..."
+                    kubectl exec -it $pod_name --container $container_name -- cd /tmp
+                    echo "Executing './ls_copy' command in the container..."
                     kubectl exec -it $pod_name --container $container_name -- /tmp/ls_copy
                     echo "Container drift blocked successfully."
                     echo "Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
