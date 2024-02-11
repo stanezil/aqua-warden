@@ -34,6 +34,11 @@ check_container_existence() {
     return $?
 }
 
+check_pod_status() {
+    local pod_name=$1
+    kubectl get pods | grep $pod_name | grep -q "Running"
+}
+
 deploy_test_container() {
     # Check if the aqua-test-container deployment already exists
     if check_container_existence; then
@@ -191,19 +196,20 @@ main() {
                 read -p "Are you sure you want to terminate the program? (y/n): " terminate_choice
                 case $terminate_choice in
                     [Yy]*)
-                        read -p "Do you want to delete the Aqua test container before termination? (y/n): " delete_container
-                        case $delete_container in
-                            [Yy]*)
+                        if check_container_existence || check_pod_status "centos"; then
+                            read -p "Do you want to delete the Aqua test container before termination? (y/n): " delete_container
+                            if [[ $delete_container =~ ^[Yy] ]]; then
                                 delete_test_container
                                 kubectl delete pod centos --force 
-                                ;;
-                            [Nn]*)
+                            elif [[ $delete_container =~ ^[Nn] ]]; then
                                 echo "Exiting program without deleting the Aqua test container."
-                                ;;
-                            *)
+                            else
                                 echo "Invalid input. Exiting program without deleting the Aqua test container."
-                                ;;
-                        esac
+                            fi
+                        else
+                            echo "Aqua test container or Centos container is not running."
+                            echo "Exiting program without deleting the Aqua test container."
+                        fi
                         exit
                         ;;
                     [Nn]*)
@@ -222,7 +228,7 @@ main() {
 
         echo
         # Add a short delay before showing the options menu again
-        sleep 3
+        sleep 2
     done
 }
 
