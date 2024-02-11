@@ -124,8 +124,6 @@ main() {
                     container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
                     echo "Copying '/bin/ls' to '/tmp/ls_copy' in the container..."
                     kubectl exec -it $pod_name --container $container_name -- cp /bin/ls /tmp/ls_copy
-                    echo "Executing 'cd /tmp' in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- cd /tmp
                     echo "Executing './ls_copy' command in the container..."
                     kubectl exec -it $pod_name --container $container_name -- /tmp/ls_copy
                     echo "Container drift blocked successfully."
