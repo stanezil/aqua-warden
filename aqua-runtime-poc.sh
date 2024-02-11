@@ -215,7 +215,7 @@ main() {
 
         echo
         # Add a short delay before showing the options menu again
-        sleep 3
+        sleep 2
     done
 }
 
