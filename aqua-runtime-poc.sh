@@ -80,7 +80,7 @@ main() {
         echo "2. Test Real-time Malware Protection"
         echo "3. Test Drift Prevention"
         echo "4. Test Block Cryptocurrency Mining"
-        echo "5. Test Block Fileless Execution"
+        echo "5. Test Block Fileless Execution (*Turn off Drift Prevention Control)"
         echo "6. Terminate Program"
         echo
 
