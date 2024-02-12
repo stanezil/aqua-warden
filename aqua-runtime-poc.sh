@@ -8,7 +8,7 @@ print_logo() {
     echo "        :-------=%%%:     -#%%%%%%%#-     +%%%%%%%%*:   %%*        %%#   :#%%%%%%%#-      "
     echo "      :-        :%%%:    *%%+:   :+%%*  .#%%=.  .-#%%-  %%*        %%#  +%%+:   :+%%*     "
     echo "    .---        :%%%:   =%%=       =%%- *%%.       #%%  %%*        %%# -%%+       -%%=    "
-    echo "    .---        :%%%.   =%%-       -%%= *%%.       *%%  %%#       .%%* -%%=       .%%+    "
+    echo "    .---        :%%%:   =%%-       -%%= *%%.       *%%  %%#       .%%* -%%=       .%%+    "
     echo "    .---        :%%%:   =%%-       -%%= *%%.       *%%  %%#       .%%* -%%=       .%%+    "
     echo "    .---        :#+:     #%%=.     -%%= .%%#-      *%%  =%%+.    :#%%.  #%%=.     .%%+    "
     echo "    :***++++++++-.        =%%%%#####%%=  .+%%%##*: *%%   -*%%%##%%%+.    -#%%%#####%%+    "
@@ -26,6 +26,38 @@ print_logo() {
     echo "                                                                                          "
     echo "                                                                                          "
     echo "                                                                                          "
+}
+
+check_kubernetes_connection() {
+    echo -n "Checking Kubernetes connection"
+    for i in {1..10}; do
+        echo -n "."
+        sleep 0.2
+    done
+    echo
+    # Check if connected to a Kubernetes cluster
+    if kubectl cluster-info &>/dev/null; then
+        echo "✓ Kubernetes cluster connected"
+    else
+        echo "✗ Error: Not connected to a valid Kubernetes cluster."
+        exit 1
+    fi
+}
+
+check_aqua_agent_daemonset() {
+    echo -n "Checking Aqua agent daemonset"
+    for i in {1..10}; do
+        echo -n "."
+        sleep 0.2
+    done
+    echo
+    # Check if aqua-agent daemonset exists in the aqua namespace
+    if kubectl get daemonset -n aqua aqua-agent &>/dev/null; then
+        echo "✓ Aqua agent daemonset found"
+    else
+        echo "✗ Error: Aqua agent daemonset not found. Please deploy the Aqua Enforcer."
+        exit 1
+    fi
 }
 
 check_container_existence() {
@@ -69,8 +101,12 @@ delete_test_container() {
 
 main() {
     print_logo
+
     echo "Welcome to the Aqua Runtime Security POC Test Program!"
     echo
+
+    check_kubernetes_connection
+    check_aqua_agent_daemonset
 
     # Check if Aqua test container exists
     if check_container_existence; then
@@ -233,3 +269,4 @@ main() {
 }
 
 main
+
