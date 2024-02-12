@@ -34,4 +34,4 @@ The Aqua Runtime Security POV Tool is an interactive command-line tool designed 
 ```
 
 ## Credits
-Stan Hoe, Solution Architect APJ
+Stan Hoe, Solution Architect APJ (stan.hoe@aquasec.com)
