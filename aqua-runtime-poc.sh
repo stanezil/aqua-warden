@@ -199,10 +199,12 @@ test_drift_prevention() {
                 echo
                 print_colored_message yellow "Copying '/bin/ls' to '/tmp/ls_copy' in the container..."
                 echo
+                echo "kubectl exec -it $pod_name --container $container_name -- cp /bin/ls /tmp/ls_copy"
                 kubectl exec -it $pod_name --container $container_name -- cp /bin/ls /tmp/ls_copy
                 echo
-                print_colored_message yellow "Executing './ls_copy' command in the container..."
+                print_colored_message yellow "Executing '/tmp/ls_copy' command in the container..."
                 echo
+                echo "kubectl exec -it $pod_name --container $container_name -- /tmp/ls_copy"
                 kubectl exec -it $pod_name --container $container_name -- /tmp/ls_copy
                 echo
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
@@ -390,6 +392,19 @@ test_executables_blocked() {
     esac
 }
 
+# Function to execute a shell session in the test application container
+exec_into_test_application() {
+    if check_container_existence; then
+        pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
+        container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
+        echo "Executing shell session in the Aqua test application container..."
+        echo
+        kubectl exec -it $pod_name --container $container_name -- /bin/bash
+    else
+        print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+    fi
+}
+
 check_pod_status() {
     local pod_name=$1
     kubectl get pods | grep $pod_name | grep -q "Running"
@@ -465,10 +480,11 @@ main() {
         echo "5. Test Block Fileless Execution [Must Turn off Drift Prevention Control in Aqua Console]"
         echo "6. Test Reverse Shell"
         echo "7. Test Executables Blocked [/bin/whoami] > Not working due to SLK-76766"
-        echo "8. Terminate Program"
+        echo "8. Exec into Test Application Container"
+        echo "9. Terminate Program"
         echo
 
-        read -p "Enter your choice (1-8): " choice
+        read -p "Enter your choice (1-9): " choice
 
         case $choice in
             1)
@@ -493,6 +509,9 @@ main() {
                 test_executables_blocked
                 ;;
             8)
+                exec_into_test_application
+                ;;
+            9)
                 # Terminate the program
                 read -p "Are you sure you want to terminate the program? (y/n): " terminate_choice
                 case $terminate_choice in
