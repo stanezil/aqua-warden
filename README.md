@@ -1,4 +1,4 @@
-<img src="https://github.com/stanezil/aqua-warden/blob/main/Logo/aqua_warden_1x1.png?raw=true" width="300" height="300">
+<img src="/Logo/aqua_warden_1x1.png" width="300" height="300">
 
 
 # 🛡️ Warden: The Aqua Runtime Security POV Tool 🛡️
