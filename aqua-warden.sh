@@ -453,7 +453,7 @@ main() {
         echo "2. Test Real-time Malware Protection [Delete action]"
         echo "3. Test Drift Prevention"
         echo "4. Test Block Cryptocurrency Mining"
-        echo "5. Test Block Fileless Execution [Must Turn off Drift Prevention Control in Aqua Console]"
+        echo "5. Test Block Fileless Execution [Drift Prevention Control must be disabled in the Aqua Console]"
         echo "6. Test Reverse Shell"
         echo "7. Test Executables Blocked [/bin/whoami] > Not working due to SLK-76766"
         echo "8. Exec into Test Application Container"
