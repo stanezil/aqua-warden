@@ -50,7 +50,7 @@ print_logo() {
 
 print_welcome_message() {
     echo "=========================================================================================="
-    echo "                     Welcome to the Aqua Runtime Security POV Tool                        "
+    echo "                    Welcome to Warden, the Aqua Runtime Security POV Tool                 "
     echo "=========================================================================================="
     echo "                                                                                          "
     echo "     Explore various security features of Aqua Security with this interactive tool.       " 
