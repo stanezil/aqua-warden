@@ -103,7 +103,7 @@ check_kubernetes_connection() {
 
 
 check_aqua_agent_daemonset() {
-    echo -n "Checking Aqua agent daemonset"
+    echo -n "Checking Aqua Enforcer (aqua-agent) daemonset"
     for i in {1..10}; do
         echo -n "."
         sleep 0.2
@@ -354,6 +354,42 @@ test_reverse_shell() {
     esac
 }
 
+test_executables_blocked() {
+    echo
+    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+    1. Create a Custom Policy with Executables Block Control enabled
+    2. Add '/bin/whoami' to the list of blocked executables 
+    3. Ensure that the Custom Policy is set to 'Enforce' mode"
+    echo
+    read -p "Proceed? (y/n): " prerequisites_met
+
+    case $prerequisites_met in
+        [Yy]*)
+            # Execute commands in the deployed container
+            if check_container_existence; then
+                pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
+                container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
+                echo
+                print_colored_message yellow "Executing the blocked 'whoami' command in the container..."
+                echo
+                kubectl exec -it $pod_name --container $container_name -- /bin/whoami
+                echo
+                print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
+                echo
+                print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
+            else
+                print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+            fi
+            ;;
+        [Nn]*)
+            echo "Please ensure the prerequisites are met before proceeding."
+            ;;
+        *)
+            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+            ;;
+    esac
+}
+
 check_pod_status() {
     local pod_name=$1
     kubectl get pods | grep $pod_name | grep -q "Running"
@@ -366,12 +402,14 @@ deploy_test_container() {
         delete_test_container
     fi
 
-    echo "Deploying Aqua test container..."
+    echo
+    print_colored_message yellow "Deploying Aqua test container..."
     # Deploying the container using kubectl
     kubectl create deployment aqua-test-container --image=stanhoe/ubuntu-wget:latest -- sleep infinity
 
     # Wait for the deployment to complete
-    echo "Waiting for the deployment to complete..."
+    echo
+    print_colored_message yellow "Waiting for the deployment to complete..."
     kubectl wait --for=condition=available deployment/aqua-test-container --timeout=60s
 
     # Check if deployment was successful
@@ -426,10 +464,11 @@ main() {
         echo "4. Test Block Cryptocurrency Mining"
         echo "5. Test Block Fileless Execution [Must Turn off Drift Prevention Control in Aqua Console]"
         echo "6. Test Reverse Shell"
-        echo "7. Terminate Program"
+        echo "7. Test Executables Blocked [/bin/whoami] > Not working due to SLK-76766"
+        echo "8. Terminate Program"
         echo
 
-        read -p "Enter your choice (1/2/3/4/5/6/7): " choice
+        read -p "Enter your choice (1-8): " choice
 
         case $choice in
             1)
@@ -451,6 +490,9 @@ main() {
                 test_reverse_shell
                 ;;
             7)
+                test_executables_blocked
+                ;;
+            8)
                 # Terminate the program
                 read -p "Are you sure you want to terminate the program? (y/n): " terminate_choice
                 case $terminate_choice in
