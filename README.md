@@ -4,7 +4,7 @@
 # 🛡️ Warden: The Aqua Runtime Security POV Tool 🛡️
 
 ## Overview
-The Aqua Runtime Security POV Tool is an interactive command-line tool designed to explore various security features provided by Aqua Security within Kubernetes environments. It allows users to experience Real-Time malware Protection, Drift Prevention, and other security controls offered by Aqua.
+Warden, the Aqua Runtime Security POV Tool, is an interactive command-line tool designed to explore various security features provided by Aqua Security within Kubernetes environments. It allows users to experience Real-Time malware Protection, Drift Prevention, and other security controls offered by Aqua.
 
 ## Features
 - Deploy and manage a test container within a Kubernetes cluster.
@@ -18,7 +18,7 @@ The Aqua Runtime Security POV Tool is an interactive command-line tool designed 
 
 ## Usage
 1. Ensure you have `kubectl` configured to connect to your Kubernetes cluster.
-2. Run the script by executing `./aqua-runtime-poc.sh`.
+2. Run the script by executing `./aqua-warden.sh`.
 3. Follow the on-screen prompts to deploy the test container and perform security tests.
 
 ## Requirements
@@ -29,11 +29,11 @@ The Aqua Runtime Security POV Tool is an interactive command-line tool designed 
 
 ## Installation
 1. Clone this repository to your local machine.
-2. Ensure you have the necessary permissions to execute the script (`chmod +x aqua-runtime-poc.sh`).
+2. Ensure you have the necessary permissions to execute the script (`chmod +x aqua-warden.sh`).
 
 ## Usage Example
 ```bash
-./aqua-runtime-poc.sh
+./aqua-warden.sh
 ```
 
 ## Credits
