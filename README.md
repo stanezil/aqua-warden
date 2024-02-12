@@ -22,6 +22,7 @@ The Aqua Runtime Security POV Tool is an interactive command-line tool designed 
 - Bash shell
 - `kubectl` configured to connect to a Kubernetes cluster
 - Aqua Enforcer daemonset deployed in the Kubernetes cluster
+- Permissions to deploy containers in the Kubernetes cluster (stanhoe/ubuntu-wget:latest and stanhoe/centos-nc:7)
 
 ## Installation
 1. Clone this repository to your local machine.
