@@ -1,10 +1,10 @@
-![image](https://github.com/stanezil/poc-script/assets/7872213/d692c918-b1ea-4988-8661-fd7e66f6c034)
+<img src="https://github.com/stanezil/aqua-pov-tool/assets/7872213/65f045ee-a517-43b6-8a48-90d260bb848d" width="400" height="400">
 
 
-# Aqua Runtime Security POV Tool
+# 🛡️ Warden: The Aqua Runtime Security POV Tool 🛡️
 
 ## Overview
-The Aqua Runtime Security POV Tool is an interactive command-line tool designed to explore various security features provided by Aqua Security within Kubernetes environments. It allows users to experience real-time malware protection, drift prevention, and other security controls offered by Aqua.
+The Aqua Runtime Security POV Tool is an interactive command-line tool designed to explore various security features provided by Aqua Security within Kubernetes environments. It allows users to experience Real-Time malware Protection, Drift Prevention, and other security controls offered by Aqua.
 
 ## Features
 - Deploy and manage a test container within a Kubernetes cluster.
