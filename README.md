@@ -9,11 +9,11 @@ Warden, the Aqua Runtime Security POV Tool, is an interactive command-line tool 
 <img src="/misc/aqua-warden-demo.gif" height="300">
 
 ## Features
-- Deploy and manage a test container within a Kubernetes cluster.
-- Test real-time malware protection with delete actions.
+- Deploy a test container within a Kubernetes cluster.
+- Test real-time malware protection with delete action.
 - Test drift prevention controls.
 - Test block cryptocurrency mining.
-- Test block fileless execution (with drift prevention disabled).
+- Test block fileless execution (drift prevention must be disabled).
 - Test reverse shell detection.
 - Test executables blocked. (Currently only detection due to a bug in SLK-76766)
 - Exec into the test container
