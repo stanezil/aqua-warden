@@ -1,4 +1,4 @@
-<img src="/Logo/aqua_warden_1x1.png" width="300" height="300">
+<img src="/misc/aqua_warden_1x1.png" width="300" height="300">
 
 
 # 🛡️ Warden: The Aqua Runtime Security POV Tool 🛡️
@@ -6,7 +6,7 @@
 ## Overview
 Warden, the Aqua Runtime Security POV Tool, is an interactive command-line tool designed to explore various security features provided by Aqua Security within Kubernetes environments. It allows users to experience Real-Time malware Protection, Drift Prevention, and other security controls offered by Aqua.
 
-<img src="/Logo/aqua-warden-demo.gif" height="300">
+<img src="/misc/aqua-warden-demo.gif" height="300">
 
 ## Features
 - Deploy and manage a test container within a Kubernetes cluster.
