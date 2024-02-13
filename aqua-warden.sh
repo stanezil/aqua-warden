@@ -197,15 +197,15 @@ test_drift_prevention() {
                 pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
                 container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
                 echo
-                print_colored_message yellow "Copying '/bin/ls' to '/tmp/ls_copy' in the container..."
+                print_colored_message yellow "Copying '/bin/wget' to '/tmp/wget_copy' in the container..."
                 echo
-                echo "kubectl exec -it $pod_name --container $container_name -- cp /bin/ls /tmp/ls_copy"
-                kubectl exec -it $pod_name --container $container_name -- cp /bin/ls /tmp/ls_copy
+                echo "kubectl exec -it $pod_name --container $container_name -- cp /bin/wget /tmp/wget_copy"
+                kubectl exec -it $pod_name --container $container_name -- cp /bin/wget /tmp/wget_copy
                 echo
-                print_colored_message yellow "Executing '/tmp/ls_copy' command in the container..."
+                print_colored_message yellow "Executing '/tmp/wget_copy' command in the container..."
                 echo
-                echo "kubectl exec -it $pod_name --container $container_name -- /tmp/ls_copy"
-                kubectl exec -it $pod_name --container $container_name -- /tmp/ls_copy
+                echo "kubectl exec -it $pod_name --container $container_name -- /tmp/wget_copy"
+                kubectl exec -it $pod_name --container $container_name -- /tmp/wget_copy
                 echo
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
                 echo
