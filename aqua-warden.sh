@@ -1,5 +1,29 @@
 #!/bin/bash
 
+# print_logo() {
+#     echo "                                                                                          "
+#     echo "                                                                                          "
+#     echo "                                                                                          "
+#     echo "         .:-----=##*.       .--=--.         :-==-:      ::.        :::     .:-==-.        "
+#     echo "        :-------=%%%:     -#%%%%%%%#-     +%%%%%%%%*:   %%*        %%#   :#%%%%%%%#-      "
+#     echo "      :-        :%%%:    *%%+:   :+%%*  .#%%=.  .-#%%-  %%*        %%#  +%%+:   :+%%*     "
+#     echo "    .---        :%%%:   =%%=       =%%- *%%.       #%%  %%*        %%# -%%+       -%%=    "
+#     echo "    .---        :%%%:   =%%-       -%%= *%%.       *%%  %%#       .%%* -%%=       .%%+    "
+#     echo "    .---        :%%%:   =%%-       -%%= *%%.       *%%  %%#       .%%* -%%=       .%%+    "
+#     echo "    .---        :#+:     #%%=.     -%%= .%%#-      *%%  =%%+.    :#%%.  #%%=.     .%%+    "
+#     echo "    :***++++++++-.        =%%%%#####%%=  .+%%%##*: *%%   -*%%%##%%%+.    -#%%%#####%%+    "
+#     echo "    :#########+.            .-=+++++++:     :==-   *%%     .-=++=:         .-=+++++++-    "
+#     echo "                                                   *%%                                    "
+#     echo "                                                   *%%                                    "
+#     echo "                                                   *%%                                    "
+#     echo "                                                                                          "
+#     echo "                                                                                          "
+#     echo "     Tool developed by: Stan Hoe, Solution Architect APJ                                       "
+#     echo "                                                                                          "
+#     echo "                                                                                          "
+# }
+
+
 print_logo() {
     echo -e "                                                                                          "
     echo -e "                                                                                          "
@@ -336,7 +360,7 @@ test_executables_blocked() {
     echo
     print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
     1. Create a Custom Policy with Executables Block Control enabled
-    2. Add '/bin/whoami' to the list of blocked executables 
+    2. Add 'ps' to the list of blocked executables 
     3. Ensure that the Custom Policy is set to 'Enforce' mode"
     echo
     read -p "Proceed? (y/n): " prerequisites_met
@@ -348,9 +372,9 @@ test_executables_blocked() {
                 pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
                 container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
                 echo
-                print_colored_message yellow "Executing the blocked 'whoami' command in the container..."
+                print_colored_message yellow "Executing the blocked 'ps' command in the container..."
                 echo
-                kubectl exec -it $pod_name --container $container_name -- /bin/whoami
+                kubectl exec -it $pod_name --container $container_name -- bash -c "ps"
                 echo
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
                 echo
@@ -453,10 +477,10 @@ main() {
         echo "2. Test Real-time Malware Protection [Delete action]"
         echo "3. Test Drift Prevention"
         echo "4. Test Block Cryptocurrency Mining"
-        echo "5. Test Block Fileless Execution [Drift Prevention Control must be disabled in the Aqua Console]"
+        echo "5. Test Block Fileless Execution [Must Turn off Drift Prevention Control in Aqua Console]"
         echo "6. Test Reverse Shell"
-        echo "7. Test Executables Blocked [/bin/whoami] > Not working due to SLK-76766"
-        echo "8. Exec into Test Application Container"
+        echo "7. Test Executables Blocked [ps]"
+        echo "8. Exec into Test Application Container For Manual Testing"
         echo "9. Terminate Program"
         echo
 
