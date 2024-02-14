@@ -15,7 +15,7 @@ Warden, the Aqua Runtime Security POV Tool, is an interactive command-line tool 
 4. Test block cryptocurrency mining.
 5. Test block fileless execution (drift prevention must be disabled).
 6. Test reverse shell detection.
-7. Test executables blocked. (ps)
+7. Test executables blocked (ps).
 8. Exec into the test container for manual testing
 
 ## Usage
