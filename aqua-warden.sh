@@ -1,3 +1,5 @@
+#!/bin/bash
+
 print_logo() {
     echo -e "                                                                                          "
     echo -e "                                                                                          "
