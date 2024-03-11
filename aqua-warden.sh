@@ -180,8 +180,8 @@ test_drift_prevention() {
                 echo
                 print_colored_message yellow "Executing '/tmp/wget_copy' command in the container..."
                 echo
-                echo "kubectl exec -it $pod_name --container $container_name -- /tmp/wget_copy"
-                kubectl exec -it $pod_name --container $container_name -- /tmp/wget_copy
+                echo "kubectl exec -it $pod_name --container $container_name -- /tmp/wget_copy google.com"
+                kubectl exec -it $pod_name --container $container_name -- /tmp/wget_copy google.com
                 echo
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
                 echo
