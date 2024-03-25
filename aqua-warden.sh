@@ -381,6 +381,37 @@ exec_into_test_application() {
     fi
 }
 
+# Terminate the program
+terminate_program() {
+    read -p "Are you sure you want to terminate the program? (y/n): " terminate_choice
+    case $terminate_choice in
+        [Yy]*)
+            if check_container_existence || check_pod_status "centos"; then
+                read -p "Do you want to delete the Aqua test container before termination? (y/n): " delete_container
+                if [[ $delete_container =~ ^[Yy] ]]; then
+                    delete_test_container
+                    kubectl delete pod centos --force 
+                elif [[ $delete_container =~ ^[Nn] ]]; then
+                    echo "Exiting program without deleting the Aqua test container."
+                else
+                    echo "Invalid input. Exiting program without deleting the Aqua test container."
+                fi
+            else
+                echo "Aqua test container or Centos container is not running."
+                echo "Exiting program without deleting the Aqua test container."
+            fi
+            exit
+            ;;
+        [Nn]*)
+            echo "Cancelled termination. Returning to the main menu."
+            ;;
+        *)
+            echo "Invalid input. Returning to the main menu."
+            ;;
+    esac
+}
+
+
 check_pod_status() {
     local pod_name=$1
     kubectl get pods | grep $pod_name | grep -q "Running"
@@ -482,43 +513,13 @@ main() {
                 test_reverse_shell
                 ;;
             7)
-                test_executables_blocked
+                test_executables_blocked 
                 ;;
             8)
                 exec_into_test_application
                 ;;
             9)
-                # Terminate the program
-                read -p "Are you sure you want to terminate the program? (y/n): " terminate_choice
-                case $terminate_choice in
-                    [Yy]*)
-                        if check_container_existence || check_pod_status "centos"; then
-                            read -p "Do you want to delete the Aqua test container before termination? (y/n): " delete_container
-                            if [[ $delete_container =~ ^[Yy] ]]; then
-                                delete_test_container
-                                kubectl delete pod centos --force 
-                            elif [[ $delete_container =~ ^[Nn] ]]; then
-                                echo "Exiting program without deleting the Aqua test container."
-                            else
-                                echo "Invalid input. Exiting program without deleting the Aqua test container."
-                            fi
-                        else
-                            echo "Aqua test container or Centos container is not running."
-                            echo "Exiting program without deleting the Aqua test container."
-                        fi
-                        exit
-                        ;;
-                    [Nn]*)
-                        echo "Cancelled termination. Returning to the main menu."
-                        ;;
-                    *)
-                        echo "Invalid input. Returning to the main menu."
-                        ;;
-                esac
-                ;;
-            *)
-                echo "Invalid choice. Please choose a valid option."
-                echo
+                terminate_program
                 ;;
         esac
 
