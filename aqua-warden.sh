@@ -103,14 +103,20 @@ check_container_existence() {
 }
 
 test_realtime_malware_protection() {
-    # Ask user if prerequisites are met
-    echo
-    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
-    1. Create a Custom Policy with Real-time Malware Protection Control enabled
-    2. Ensure that the Real-time Malware Protection Control is set to 'Delete' action
-    3. Ensure that the Custom Policy is set to 'Enforce' mode"
-    echo
-    read -p "Proceed? (y/n): " prerequisites_met
+    if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
+        prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
+    else
+        # Ask user if prerequisites are met
+        echo
+        print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+        1. Create a Custom Policy with Real-time Malware Protection Control enabled
+        2. Ensure that the Real-time Malware Protection Control is set to 'Delete' action
+        3. Ensure that the Custom Policy is set to 'Enforce' mode
+        4. Ensure that Block Container Exec Control is disabled"
+
+        echo
+        read -p "Proceed? (y/n): " prerequisites_met
+    fi
 
     case $prerequisites_met in
         [Yy]*)
@@ -157,14 +163,21 @@ test_realtime_malware_protection() {
     esac
 }
 
+
+# Drift Prevention
 test_drift_prevention() {
-    # Ask user if prerequisites are met
-    echo
-    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
-    1. Create a Custom Policy with Drift Prevention Control enabled
-    2. Ensure that the Custom Policy is set to 'Enforce' mode"
-    echo
-    read -p "Proceed? (y/n): " prerequisites_met
+    if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
+        prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
+    else
+        # Ask user if prerequisites are met
+        echo
+        print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+        1. Create a Custom Policy with Drift Prevention Control enabled
+        2. Ensure that the Custom Policy is set to 'Enforce' mode
+        3. Ensure that Block Container Exec Control is disabled"
+        echo
+        read -p "Proceed? (y/n): " prerequisites_met
+    fi
 
     case $prerequisites_met in
         [Yy]*)
@@ -199,14 +212,21 @@ test_drift_prevention() {
     esac
 }
 
+
+# Block Cryptomining
 test_block_cryptocurrency_mining() {
-    # Ask user if prerequisites are met
-    echo
-    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
-    1. Create a Custom Policy with Block Cryptocurrency Mining Control enabled
-    2. Ensure that the Custom Policy is set to 'Enforce' mode"
-    echo
-    read -p "Proceed? (y/n): " prerequisites_met
+    if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
+        prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
+    else
+        # Ask user if prerequisites are met
+        echo
+        print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+        1. Create a Custom Policy with Block Cryptocurrency Mining Control enabled
+        2. Ensure that the Custom Policy is set to 'Enforce' mode
+        3. Ensure that Block Container Exec Control is disabled"
+        echo
+        read -p "Proceed? (y/n): " prerequisites_met
+    fi
 
     case $prerequisites_met in
         [Yy]*)
@@ -235,15 +255,22 @@ test_block_cryptocurrency_mining() {
     esac
 }
 
+
+# Block Fileless Exec
 test_block_fileless_execution() {
-    # Ask user if prerequisites are met
-    echo
-    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
-    1. Create a Custom Policy with Block Fileless Execution Control enabled
-    2. Ensure that the Custom Policy is set to 'Enforce' mode
-    3. Ensure that Drift Prevention Control is disabled"
-    echo
-    read -p "Proceed? (y/n): " prerequisites_met
+    if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
+        prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
+    else
+        # Ask user if prerequisites are met
+        echo
+        print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+        1. Create a Custom Policy with Block Fileless Execution Control enabled
+        2. Ensure that the Custom Policy is set to 'Enforce' mode
+        3. Ensure that Drift Prevention Control is disabled
+        4. Ensure that Block Container Exec Control is disabled"
+        echo
+        read -p "Proceed? (y/n): " prerequisites_met
+    fi
 
     case $prerequisites_met in
         [Yy]*)
@@ -280,14 +307,21 @@ test_block_fileless_execution() {
     esac
 }
 
+
+# Block Reverse Shell
 test_reverse_shell() {
-    # Ask user if prerequisites are met
-    echo
-    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
-    1. Create a Custom Policy with Reverse Shell Control enabled
-    2. Ensure that the Custom Policy is set to 'Enforce' mode"
-    echo
-    read -p "Proceed? (y/n): " prerequisites_met
+    if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
+        prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
+    else
+        # Ask user if prerequisites are met
+        echo
+        print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+        1. Create a Custom Policy with Reverse Shell Control enabled
+        2. Ensure that the Custom Policy is set to 'Enforce' mode
+        3. Ensure that Block Container Exec Control is disabled"
+        echo
+        read -p "Proceed? (y/n): " prerequisites_met
+    fi
 
     case $prerequisites_met in
         [Yy]*)
@@ -332,14 +366,22 @@ test_reverse_shell() {
     esac
 }
 
+
+# Executables Blocked
 test_executables_blocked() {
-    echo
-    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
-    1. Create a Custom Policy with Executables Block Control enabled
-    2. Add 'ps' to the list of blocked executables 
-    3. Ensure that the Custom Policy is set to 'Enforce' mode"
-    echo
-    read -p "Proceed? (y/n): " prerequisites_met
+    if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
+        prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
+    else
+        # Ask user if prerequisites are met
+        echo
+        print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+        1. Create a Custom Policy with Executables Block Control enabled
+        2. Add 'ps' to the list of blocked executables 
+        3. Ensure that the Custom Policy is set to 'Enforce' mode
+        4. Ensure that Block Container Exec Control is disabled"
+        echo
+        read -p "Proceed? (y/n): " prerequisites_met
+    fi
 
     case $prerequisites_met in
         [Yy]*)
@@ -368,18 +410,47 @@ test_executables_blocked() {
     esac
 }
 
-# Function to execute a shell session in the test application container
-exec_into_test_application() {
-    if check_container_existence; then
-        pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
-        container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
-        echo "Executing shell session in the Aqua test application container..."
-        echo
-        kubectl exec -it $pod_name --container $container_name -- /bin/bash
+
+# Block Container Exec
+test_container_exec() {
+    if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
+        prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
     else
-        print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+        # Ask user if prerequisites are met
+        echo
+        print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+        1. Create a Custom Policy with Block Container Exec Control enabled
+        2. Ensure that the Custom Policy is set to 'Enforce' mode"
+        echo
+        read -p "Proceed? (y/n): " prerequisites_met
     fi
+
+    case $prerequisites_met in
+        [Yy]*)
+            # Execute commands in the deployed container
+            if check_container_existence; then
+                pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
+                container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
+                echo "Executing shell session in the Aqua test application container..."
+                echo
+        kubectl exec -it $pod_name --container $container_name -- /bin/bash
+                echo
+                print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
+                echo
+                print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
+            else
+                print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+            fi
+            ;;
+        [Nn]*)
+            echo "Please ensure the prerequisites are met before proceeding."
+            ;;
+        *)
+            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+            ;;
+    esac
 }
+
 
 # Terminate the program
 terminate_program() {
@@ -400,6 +471,7 @@ terminate_program() {
                 echo "Aqua test container or Centos container is not running."
                 echo "Exiting program without deleting the Aqua test container."
             fi
+            unset AQUA_WARDEN_SKIP_INSTRUCTIONS # Unset env var for skip instructions flag
             exit
             ;;
         [Nn]*)
@@ -450,9 +522,21 @@ delete_test_container() {
     kubectl delete deployment aqua-test-container
 }
 
+check_no_instructions_flag() {
+  if [[ "$1" == "--no-instructions" || "$1" == "-n" ]]; then
+    echo "Detected --no-instructions flag"
+    export AQUA_WARDEN_SKIP_INSTRUCTIONS=1
+  fi
+}
+
+
+# Main 
 main() {
     print_logo
     print_welcome_message
+    echo
+
+    check_no_instructions_flag "$@"
     echo
 
     check_kubernetes_connection
@@ -487,7 +571,7 @@ main() {
         echo "5. Test Block Fileless Execution [Must Turn off Drift Prevention Control in Aqua Console]"
         echo "6. Test Reverse Shell"
         echo "7. Test Executables Blocked [ps]"
-        echo "8. Exec into Test Application Container For Manual Testing"
+        echo "8. Test Block Container Exec"
         echo "9. Terminate Program"
         echo
 
@@ -516,7 +600,7 @@ main() {
                 test_executables_blocked 
                 ;;
             8)
-                exec_into_test_application
+                test_container_exec
                 ;;
             9)
                 terminate_program
@@ -529,4 +613,4 @@ main() {
     done
 }
 
-main
+main "$@"
