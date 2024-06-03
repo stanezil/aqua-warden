@@ -412,7 +412,7 @@ test_executables_blocked() {
 
 
 # Block Container Exec
-test_container_exec() {
+test_block_container_exec() {
     if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
         prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
     else
@@ -600,7 +600,7 @@ main() {
                 test_executables_blocked 
                 ;;
             8)
-                test_container_exec
+                test_block_container_exec
                 ;;
             9)
                 terminate_program
