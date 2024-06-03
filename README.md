@@ -41,7 +41,9 @@ Warden, the Aqua Runtime Security POV Tool, is an interactive command-line tool 
 ## Additional commands
 Skip test prerequisites instructions
 ```bash
-./aqua-warden.sh --no-instructions OR -n 
+./aqua-warden.sh --no-instructions
+OR
+./aqua-warden.sh -n
 ```
 
 ## Credits
