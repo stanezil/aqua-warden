@@ -27,7 +27,8 @@ Warden, the Aqua Runtime Security POV Tool, is an interactive command-line tool 
 - Bash shell
 - `kubectl` configured to connect to a Kubernetes cluster
 - Aqua Enforcer daemonset deployed in the Kubernetes cluster
-- Permissions to deploy containers in the Kubernetes cluster (stanhoe/ubuntu-wget:latest and stanhoe/centos-nc:7)
+- Internet access to docker regsitry or push aqua-warden test image (stanhoe/aqua-warden:latest) to local registry
+- Permissions to deploy container in the Kubernetes cluster (stanhoe/aqua-warden:latest)
 
 ## Installation
 1. Clone this repository to your local machine
