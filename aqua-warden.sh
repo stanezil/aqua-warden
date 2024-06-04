@@ -327,11 +327,11 @@ test_reverse_shell() {
         [Yy]*)
             # Execute commands in the deployed container
             if check_container_existence; then
-                # Create a Centos pod with nc listener
+                # Create a listener pod with nc listener
                 echo
                 print_colored_message yellow "Creating listener pod"
                 echo
-                kubectl run listener --image=stanhoe/aqua-warden:latest --command sleep infinity
+                kubectl run listener --image=$AQUA_WARDEN_IMAGE --command sleep infinity
                 echo
                 print_colored_message yellow "Waiting for the listener container pod to start running..."
                 while ! kubectl get pods | grep listener | grep -q "Running"; do
@@ -340,7 +340,7 @@ test_reverse_shell() {
                 echo
                 print_colored_message yellow "Listener container pod is running. Configuring nc listener in pod..."
                 echo
-                kubectl exec -ti listener -- bash -c "nohup nc -l -p 12345 >/dev/null 2>&1 &" 
+                kubectl exec listener -- bash -c "nohup nc -l -p 12345 >/dev/null 2>&1 &" 
                 echo
                 print_colored_message yellow "Retrieving IP address..."
                 listener_pod_ip=$(kubectl get pods -o wide | grep listener | awk '{print $6}')
@@ -472,6 +472,7 @@ terminate_program() {
                 echo "Exiting program without deleting the Aqua test container."
             fi
             unset AQUA_WARDEN_SKIP_INSTRUCTIONS # Unset env var for skip instructions flag
+            unset AQUA_WARDEN_IMAGE # Unset env var for image flag
             exit
             ;;
         [Nn]*)
@@ -499,7 +500,7 @@ deploy_test_container() {
     echo
     print_colored_message yellow "Deploying Aqua test container..."
     # Deploying the container using kubectl
-    kubectl create deployment aqua-test-container --image=stanhoe/aqua-warden:latest -- sleep infinity
+    kubectl create deployment aqua-test-container --image=$AQUA_WARDEN_IMAGE -- sleep infinity
 
     # Wait for the deployment to complete
     echo
@@ -529,6 +530,37 @@ check_no_instructions_flag() {
   fi
 }
 
+handle_flags() {
+  export AQUA_WARDEN_IMAGE="stanhoe/aqua-warden:latest"
+  
+  while [[ $# -gt 0 ]]; do  # Loop until all arguments are processed
+    case "$1" in
+      --image | -i)
+        shift   # Shift to the next argument (the image name)
+        if [[ $# -gt 0 ]]; then  # Ensure an image name is provided
+          image_arg="$1"  # Store the image name
+          echo "Detected --image flag with argument: $image_arg"
+          export AQUA_WARDEN_IMAGE=$image_arg
+          shift   # Shift again to consume the image name
+        else
+          echo "Error: --image flag requires an argument" >&2
+          exit 1
+        
+        fi
+        ;;
+      --no-instructions|-n)
+        export AQUA_WARDEN_SKIP_INSTRUCTIONS=1
+        echo "Detected --no-instructions flag"
+        shift   # Shift to the next argument
+        ;;
+      *)
+        echo "Unknown flag: $1" >&2  # Print to standard error
+        shift   # Shift to the next argument
+        ;;
+    esac
+  done
+}
+
 
 # Main 
 main() {
@@ -536,7 +568,7 @@ main() {
     print_welcome_message
     echo
 
-    check_no_instructions_flag "$@"
+    handle_flags "$@"
     echo
 
     check_kubernetes_connection
