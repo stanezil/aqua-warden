@@ -392,6 +392,8 @@ test_executables_blocked() {
                 echo
                 print_colored_message yellow "Executing the blocked 'ps' command in the container..."
                 echo
+                echo "kubectl exec -it $pod_name --container $container_name -- bash -c ps"
+                echo
                 kubectl exec -it $pod_name --container $container_name -- bash -c "ps"
                 echo
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
@@ -532,7 +534,7 @@ check_no_instructions_flag() {
 
 handle_flags() {
   export AQUA_WARDEN_IMAGE="stanhoe/aqua-warden:latest"
-  
+
   while [[ $# -gt 0 ]]; do  # Loop until all arguments are processed
     case "$1" in
       --image | -i)
