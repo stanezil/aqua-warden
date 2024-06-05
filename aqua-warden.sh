@@ -390,8 +390,8 @@ test_reverse_shell() {
                 # Create a listener pod with nc listener
                 echo
                 print_colored_message yellow "Creating listener pod"
-                echo
                 kubectl run listener --image=$AQUA_WARDEN_IMAGE --command sleep infinity
+                echo
                 print_colored_message yellow "Waiting for the listener container pod to start running..."
                 while ! kubectl get pods | grep listener | grep -q "Running"; do
                     sleep 5
@@ -591,9 +591,10 @@ check_listener_container_existence() {
 }
 
 delete_listener_container() {
-    if check_container_existence; then
+    if check_listener_container_existence; then
         echo "Deleting listener container..."
-        kubectl delete pod listener
+        kubectl delete pod listener --force
+    fi
 }
 
 check_no_instructions_flag() {
