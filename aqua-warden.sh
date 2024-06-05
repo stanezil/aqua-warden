@@ -348,9 +348,9 @@ test_block_fileless_execution() {
                 pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
                 container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
                 echo
-                print_colored_message yellow "Executing './memrun filess /bin/wget' command in the container..."
+                print_colored_message yellow "Executing './memrun fileless /bin/wget' command in the container..."
                 echo
-                kubectl exec -it $pod_name --container $container_name -- ./tmp/memrun fieless /bin/wget
+                kubectl exec -it $pod_name --container $container_name -- ./tmp/memrun fileless /bin/wget
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
                 echo
                 print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
@@ -392,7 +392,6 @@ test_reverse_shell() {
                 print_colored_message yellow "Creating listener pod"
                 echo
                 kubectl run listener --image=$AQUA_WARDEN_IMAGE --command sleep infinity
-                echo
                 print_colored_message yellow "Waiting for the listener container pod to start running..."
                 while ! kubectl get pods | grep listener | grep -q "Running"; do
                     sleep 5
@@ -523,7 +522,7 @@ terminate_program() {
                 read -p "Do you want to delete the Aqua test container before termination? (y/n): " delete_container
                 if [[ $delete_container =~ ^[Yy] ]]; then
                     delete_test_container
-                    kubectl delete pod listener --force 
+                    delete_listener_container
                 elif [[ $delete_container =~ ^[Nn] ]]; then
                     echo "Exiting program without deleting the Aqua test container."
                 else
@@ -583,6 +582,18 @@ deploy_test_container() {
 delete_test_container() {
     echo "Deleting Aqua test container..."
     kubectl delete deployment aqua-test-container
+}
+
+check_listener_container_existence() {
+    # Check if the listener container exists
+    kubectl get pod listener >/dev/null 2>&1
+    return $?
+}
+
+delete_listener_container() {
+    if check_container_existence; then
+        echo "Deleting listener container..."
+        kubectl delete pod listener
 }
 
 check_no_instructions_flag() {
