@@ -348,9 +348,9 @@ test_block_fileless_execution() {
                 pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
                 container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
                 echo
-                print_colored_message yellow "Executing './memrun fileless /bin/wget' command in the container..."
+                print_colored_message yellow "Executing './memrun filelessexec /bin/wget' command in the container..."
                 echo
-                kubectl exec -it $pod_name --container $container_name -- ./tmp/memrun fileless /bin/wget
+                kubectl exec -it $pod_name --container $container_name -- ./tmp/memrun filelessexec /bin/wget
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
                 echo
                 print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
