@@ -90,6 +90,9 @@ check_aqua_agent_daemonset() {
     if kubectl get daemonset -n aqua aqua-agent &>/dev/null; then
         print_colored_message green "✓ Aqua Enforcer daemonset found"
         echo
+    elif kubectl get daemonset -n aqua aqua-enforcer-ds &>/dev/null; then
+        print_colored_message green "✓ Aqua Enforcer daemonset found"
+        echo
     else
         print_colored_message red "✗ Error: Aqua Enforcer daemonset not found. Please deploy the Aqua Enforcer."
         exit 1
