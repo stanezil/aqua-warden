@@ -36,6 +36,47 @@ print_welcome_message() {
     echo "=========================================================================================="
 }
 
+#
+# Flags management
+#
+check_no_instructions_flag() {
+  if [[ "$1" == "--no-instructions" || "$1" == "-n" ]]; then
+    echo "Detected --no-instructions flag"
+    export AQUA_WARDEN_SKIP_INSTRUCTIONS=1
+  fi
+}
+
+handle_flags() {
+  export AQUA_WARDEN_IMAGE="stanhoe/aqua-warden:latest"
+
+  while [[ $# -gt 0 ]]; do  # Loop until all arguments are processed
+    case "$1" in
+      --image | -i)
+        shift   # Shift to the next argument (the image name)
+        if [[ $# -gt 0 ]]; then  # Ensure an image name is provided
+          image_arg="$1"  # Store the image name
+          echo "Detected --image flag with argument: $image_arg"
+          export AQUA_WARDEN_IMAGE=$image_arg
+          shift   # Shift again to consume the image name
+        else
+          echo "Error: --image flag requires an argument" >&2
+          exit 1
+        
+        fi
+        ;;
+      --no-instructions|-n)
+        export AQUA_WARDEN_SKIP_INSTRUCTIONS=1
+        echo "Detected --no-instructions flag"
+        shift   # Shift to the next argument
+        ;;
+      *)
+        echo "Unknown flag: $1" >&2  # Print to standard error
+        shift   # Shift to the next argument
+        ;;
+    esac
+  done
+}
+
 print_colored_message() {
     local color="$1"
     local message="$2"
@@ -77,7 +118,6 @@ check_kubernetes_connection() {
     fi
 }
 
-
 check_aqua_agent_daemonset() {
     echo -n "Checking Aqua Enforcer (aqua-agent) daemonset"
     for i in {1..10}; do
@@ -99,73 +139,72 @@ check_aqua_agent_daemonset() {
     fi
 }
 
+#
+# Test container management
+#
+
 check_container_existence() {
     # Check if the aqua-test-container deployment already exists
     kubectl get deployment aqua-test-container >/dev/null 2>&1
     return $?
 }
 
-test_realtime_malware_protection_wget() {
-    if [ "$AQUA_WARDEN_SKIP_INSTRUCTIONS" ]; then
-        prerequisites_met="Y" # Set prerequisites_met to 'Y' immediately
-    else
-        # Ask user if prerequisites are met
-        echo
-        print_colored_message yellow "[!] In order to test out the use case successfully, please ensure that the following prerequisites are met:
-        1. Create a Custom Policy with Real-time Malware Protection Control enabled
-        2. Ensure that the Real-time Malware Protection Control is set to 'Delete' action
-        3. Ensure that the Custom Policy is set to 'Enforce' mode
-        4. Ensure that Block Container Exec Control is disabled"
-
-        echo
-        read -p "Proceed? (y/n): " prerequisites_met
-    fi
-
-    case $prerequisites_met in
-        [Yy]*)
-            # Execute commands in the deployed container
-            if check_container_existence; then
-                pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
-                container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
-                echo
-                print_colored_message yellow "Executing 'ls -la' command in the container..."
-                echo
-                kubectl exec -it $pod_name --container $container_name -- ls -la /tmp/
-                sleep 1.5
-                echo
-                print_colored_message yellow "Executing wget command in the container to download eicar AMP test file..."
-                echo
-                kubectl exec -it $pod_name --container $container_name -- wget https://raw.githubusercontent.com/stanezil/eicar/main/eicar.txt
-                if [ $? -eq 0 ]; then
-                    echo
-                    print_colored_message yellow "Eicar AMP test file downloaded successfully."
-                else
-                    echo
-                    print_colored_message red "Failed to download Eicar AMP test file."
-                fi
-                sleep 1.5
-                echo
-                print_colored_message yellow "Executing 'ls -la' command again in the container..."
-                echo
-                print_colored_message yellow "[!] Observe in the output below that the downloaded eicar file is not in sight because it has been deleted by Aqua."
-                echo 
-                kubectl exec -it $pod_name --container $container_name -- ls -la /tmp/
-                echo
-                print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
-
-            else
-                print_colored_message yellow "[!] Aqua test container is not deployed. Please deploy it first with option 1."
-            fi
-            ;;
-        [Nn]*)
-            echo "Please ensure the prerequisites are met before proceeding."
-            ;;
-        *)
-            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-            ;;
-    esac
+check_pod_status() {
+    local pod_name=$1
+    kubectl get pods | grep $pod_name | grep -q "Running"
 }
 
+deploy_test_container() {
+    # Check if the aqua-test-container deployment already exists
+    if check_container_existence; then
+        echo "Aqua test container already exists. Redeploying..."
+        delete_test_container
+    fi
+
+    echo
+    print_colored_message yellow "Deploying Aqua test container..."
+    # Deploying the container using kubectl
+    kubectl create deployment aqua-test-container --image=$AQUA_WARDEN_IMAGE -- sleep infinity
+
+    # Wait for the deployment to complete
+    echo
+    print_colored_message yellow "Waiting for the deployment to complete..."
+    kubectl wait --for=condition=available deployment/aqua-test-container --timeout=60s
+
+    # Check if deployment was successful
+    if [ $? -eq 0 ]; then
+        echo
+        print_colored_message green "✓ Aqua test container deployed successfully."
+        echo
+    else
+        print_colored_message red " Failed to deploy Aqua test container."
+        echo
+    fi
+}
+
+delete_test_container() {
+    echo "Deleting Aqua test container..."
+    kubectl delete deployment aqua-test-container
+}
+
+check_listener_container_existence() {
+    # Check if the listener container exists
+    kubectl get pod listener >/dev/null 2>&1
+    return $?
+}
+
+delete_listener_container() {
+    if check_listener_container_existence; then
+        echo "Deleting listener container..."
+        kubectl delete pod listener --force
+    fi
+}
+
+#
+# Runtime Test Cases
+#
+
+# Real-time Malware Protection 
 test_realtime_malware_protection() {
   # Split and concatenate the EICAR string (done at the start for consistency)
   string1='X5O!P%@AP[4\PZX54(P^)'
@@ -351,9 +390,9 @@ test_block_fileless_execution() {
                 pod_name=$(kubectl get pods -l app=aqua-test-container -o jsonpath='{.items[0].metadata.name}')
                 container_name=$(kubectl get pods $pod_name -o jsonpath='{.spec.containers[0].name}')
                 echo
-                print_colored_message yellow "Executing './memrun filelessexec /bin/wget' command in the container..."
+                print_colored_message yellow "Executing './memrun test /bin/wget' command in the container..."
                 echo
-                kubectl exec -it $pod_name --container $container_name -- ./tmp/memrun filelessexec /bin/wget
+                kubectl exec -it $pod_name --container $container_name -- ./tmp/memrun test /bin/wget
                 print_colored_message yellow "[!] Observe that an error code or kill signal was returned because it has been blocked by Aqua."
                 echo
                 print_colored_message green "[✓] Please login to the Aqua Console's Incident Screen to view a summary of the security incident."
@@ -549,97 +588,9 @@ terminate_program() {
 }
 
 
-check_pod_status() {
-    local pod_name=$1
-    kubectl get pods | grep $pod_name | grep -q "Running"
-}
-
-deploy_test_container() {
-    # Check if the aqua-test-container deployment already exists
-    if check_container_existence; then
-        echo "Aqua test container already exists. Redeploying..."
-        delete_test_container
-    fi
-
-    echo
-    print_colored_message yellow "Deploying Aqua test container..."
-    # Deploying the container using kubectl
-    kubectl create deployment aqua-test-container --image=$AQUA_WARDEN_IMAGE -- sleep infinity
-
-    # Wait for the deployment to complete
-    echo
-    print_colored_message yellow "Waiting for the deployment to complete..."
-    kubectl wait --for=condition=available deployment/aqua-test-container --timeout=60s
-
-    # Check if deployment was successful
-    if [ $? -eq 0 ]; then
-        echo
-        print_colored_message green "✓ Aqua test container deployed successfully."
-        echo
-    else
-        print_colored_message red " Failed to deploy Aqua test container."
-        echo
-    fi
-}
-
-delete_test_container() {
-    echo "Deleting Aqua test container..."
-    kubectl delete deployment aqua-test-container
-}
-
-check_listener_container_existence() {
-    # Check if the listener container exists
-    kubectl get pod listener >/dev/null 2>&1
-    return $?
-}
-
-delete_listener_container() {
-    if check_listener_container_existence; then
-        echo "Deleting listener container..."
-        kubectl delete pod listener --force
-    fi
-}
-
-check_no_instructions_flag() {
-  if [[ "$1" == "--no-instructions" || "$1" == "-n" ]]; then
-    echo "Detected --no-instructions flag"
-    export AQUA_WARDEN_SKIP_INSTRUCTIONS=1
-  fi
-}
-
-handle_flags() {
-  export AQUA_WARDEN_IMAGE="stanhoe/aqua-warden:latest"
-
-  while [[ $# -gt 0 ]]; do  # Loop until all arguments are processed
-    case "$1" in
-      --image | -i)
-        shift   # Shift to the next argument (the image name)
-        if [[ $# -gt 0 ]]; then  # Ensure an image name is provided
-          image_arg="$1"  # Store the image name
-          echo "Detected --image flag with argument: $image_arg"
-          export AQUA_WARDEN_IMAGE=$image_arg
-          shift   # Shift again to consume the image name
-        else
-          echo "Error: --image flag requires an argument" >&2
-          exit 1
-        
-        fi
-        ;;
-      --no-instructions|-n)
-        export AQUA_WARDEN_SKIP_INSTRUCTIONS=1
-        echo "Detected --no-instructions flag"
-        shift   # Shift to the next argument
-        ;;
-      *)
-        echo "Unknown flag: $1" >&2  # Print to standard error
-        shift   # Shift to the next argument
-        ;;
-    esac
-  done
-}
-
-
-# Main 
+#
+# Main
+# 
 main() {
     print_logo
     print_welcome_message
