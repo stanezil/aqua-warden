@@ -39,18 +39,39 @@ print_welcome_message() {
 #
 # Flags management
 #
-check_no_instructions_flag() {
-  if [[ "$1" == "--no-instructions" || "$1" == "-n" ]]; then
-    echo "Detected --no-instructions flag"
-    export AQUA_WARDEN_SKIP_INSTRUCTIONS=1
-  fi
+print_help() {
+  echo "Usage: aqua-warden.sh [OPTIONS]"
+  echo
+  echo "Options:"
+  echo "  --daemonset <value>, -d <value>         Set the custom daemonset name where the Aqua Enforcer is deployed (default: aqua-agent,kube-enforcer-ds)"
+  echo "  --help, -h                              Show this help message and exit"
+  echo "  --image <value>, -i <value>             Set the aqua-warden test image name (default: stanhoe/aqua-warden:latest)"
+  echo "  --namespace <value>, -ns <value>        Set the custom namespace where the Aqua Enforcer is deployed (default: aqua)"
+  echo "  --no-instructions, -n                   Skip prerequisites instructions"
+  echo "  --version, -v                           Show the current Aqua Warden build version"
+  echo
+  echo
 }
 
 handle_flags() {
   export AQUA_WARDEN_IMAGE="stanhoe/aqua-warden:latest"
+  export AQUA_WARDEN_NAMESPACE="aqua"
 
   while [[ $# -gt 0 ]]; do  # Loop until all arguments are processed
     case "$1" in
+    # Help flag 
+      --help | -h)
+        print_help
+        exit 0
+        ;;
+    # Version flag
+      --version | -v)
+        echo
+        echo "Version Build Date: 21 June 2024"
+        echo
+        shift  # Shift to the next argument
+        ;;
+    # Custom image flag
       --image | -i)
         shift   # Shift to the next argument (the image name)
         if [[ $# -gt 0 ]]; then  # Ensure an image name is provided
@@ -61,13 +82,39 @@ handle_flags() {
         else
           echo "Error: --image flag requires an argument" >&2
           exit 1
-        
         fi
         ;;
-      --no-instructions|-n)
+    # No instructions flag
+      --no-instructions | -n)
         export AQUA_WARDEN_SKIP_INSTRUCTIONS=1
         echo "Detected --no-instructions flag"
         shift   # Shift to the next argument
+        ;;
+    # Custom Aqua Enforcer namespace flag
+      --namespace | -ns)
+        shift  # Shift to the next argument (the namespace value)
+        if [[ $# -gt 0 ]]; then  # Ensure a namespace value is provided
+          namespace_arg="$1"  # Store the namespace value
+          echo "Detected --namespace flag with argument: $namespace_arg"
+          export AQUA_WARDEN_NAMESPACE=$namespace_arg
+          shift  # Shift again to consume the namespace value
+        else
+          echo "Error: --namespace flag requires an argument" >&2
+          exit 1
+        fi
+        ;;
+    # Custom daemonset name flag
+      --daemonset | -ds)
+        shift  # Shift to the next argument (the daemonset value)
+        if [[ $# -gt 0 ]]; then  # Ensure a daemonset value is provided
+          daemonset_arg="$1"  # Store the daemonset value
+          echo "Detected --daemonset flag with argument: $daemonset_arg"
+          export AQUA_WARDEN_DAEMONSET=$daemonset_arg
+          shift  # Shift again to consume the daemonset value
+        else
+          echo "Error: --daemonset flag requires an argument" >&2
+          exit 1
+        fi
         ;;
       *)
         echo "Unknown flag: $1" >&2  # Print to standard error
@@ -127,13 +174,16 @@ check_aqua_agent_daemonset() {
     print_colored_message green "[✓] Done"
 
     # Check if aqua-agent daemonset exists in the aqua namespace
-    if kubectl get daemonset -n aqua aqua-agent &>/dev/null; then
+    if kubectl get daemonset -n $AQUA_WARDEN_NAMESPACE aqua-agent &>/dev/null; then
         print_colored_message green "✓ Aqua Enforcer daemonset found"
         echo
-    elif kubectl get daemonset -n aqua aqua-enforcer-ds &>/dev/null; then
+    elif kubectl get daemonset -n $AQUA_WARDEN_NAMESPACE aqua-enforcer-ds &>/dev/null; then
         print_colored_message green "✓ Aqua Enforcer daemonset found"
         echo
-    elif kubectl get daemonset -n aqua kube-enforcer-ds &>/dev/null; then
+    elif kubectl get daemonset -n $AQUA_WARDEN_NAMESPACE kube-enforcer-ds &>/dev/null; then
+        print_colored_message green "✓ Aqua Enforcer daemonset found"
+        echo
+    elif kubectl get daemonset -n $AQUA_WARDEN_NAMESPACE $AQUA_WARDEN_DAEMONSET &>/dev/null; then
         print_colored_message green "✓ Aqua Enforcer daemonset found"
         echo
     else
@@ -579,6 +629,8 @@ terminate_program() {
             fi
             unset AQUA_WARDEN_SKIP_INSTRUCTIONS # Unset env var for skip instructions flag
             unset AQUA_WARDEN_IMAGE # Unset env var for image flag
+            unset AQUA_WARDEN_DAEMONSET # Unset env var for daemonset flag
+            unset AQUA_WARDEN_NAMESPACE # Unset env var for namespace flag
             exit
             ;;
         [Nn]*)
