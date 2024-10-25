@@ -47,13 +47,25 @@ Warden, the Aqua Runtime Security POV Tool, is an interactive command-line tool 
 <img src="/misc/aqua-warden-advanced-commands.png" height="300">
 
 ## Additional commands
+Set the custom daemonset name where the Aqua Enforcer is deployed (default: aqua-agent,kube-enforcer-ds)
+```bash
+./aqua-warden.sh --daemonset <value>, -d <value>
+```
+Show help menu which contains the list of commands 
+```bash
+./aqua-warden.sh --help, -h
+```
+Reference local registry image (default: stanhoe/aqua-warden:latest)
+```bash
+./aqua-warden.sh --image <image_name>, -i <image_name>
+```
 Skip test prerequisites instructions
 ```bash
 ./aqua-warden.sh --no-instructions OR -n
 ```
-Reference local registry image
+Show the current Aqua Warden build version
 ```bash
-./aqua-warden.sh --image <image_name> OR -i <image_name>
+./aqua-warden.sh --version
 ```
 
 ## Credits
