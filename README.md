@@ -61,11 +61,11 @@ Reference local registry image (default: stanhoe/aqua-warden:latest)
 ```
 Skip test prerequisites instructions
 ```bash
-./aqua-warden.sh --no-instructions OR -n
+./aqua-warden.sh --no-instructions, -n
 ```
 Show the current Aqua Warden build version
 ```bash
-./aqua-warden.sh --version
+./aqua-warden.sh --version, -v
 ```
 
 ## Credits
