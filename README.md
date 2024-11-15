@@ -70,3 +70,4 @@ Show the current Aqua Warden build version
 
 ## Credits
 Stan Hoe, Solution Architect APJ (stan.hoe@aquasec.com)
+Rhett Sandal, Principal Support Engineer, for testing the update release! 
