@@ -68,6 +68,9 @@ Show the current Aqua Warden build version
 ./aqua-warden.sh --version, -v
 ```
 
+## Aqua Warden Image
+https://github.com/stanezil/aqua-warden-image
+
 ## Credits
 Stan Hoe, Solution Architect APJ (stan.hoe@aquasec.com)
 ##
